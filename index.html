@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayanaroma Accounting Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='%234CAF50'%3E%3Cpath d='M100,50 L150,150 L50,150 Z M80,130 L120,130 L100,90 Z'/%3E%3Ccircle cx='100' cy='30' r='15' fill='%238BC34A'/%3E%3Cpath d='M30,120 Q30,150 60,160 Q100,170 140,160 Q170,150 170,120' fill='%23558B2F' opacity='0.7'/%3E%3C/g%3E%3C/svg%3E" alt="WayanAroma Logo" class="login-logo">
+            <h1>Wayanaroma Accounting</h1>
+            <p>Spice Mountain</p>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required placeholder="Enter password">
+                </div>
+                <button type="button" onclick="login()" class="btn-primary">Login</button>
+                <button type="button" onclick="signup()" class="btn-secondary">Sign Up</button>
+            </form>
+            <p id="loginError" class="error-message"></p>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboardScreen" class="dashboard" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='%234CAF50'%3E%3Cpath d='M100,50 L150,150 L50,150 Z M80,130 L120,130 L100,90 Z'/%3E%3Ccircle cx='100' cy='30' r='15' fill='%238BC34A'/%3E%3Cpath d='M30,120 Q30,150 60,160 Q100,170 140,160 Q170,150 170,120' fill='%23558B2F' opacity='0.7'/%3E%3C/g%3E%3C/svg%3E" alt="Logo" class="logo">
+                <div>
+                    <h1>Wayanaroma Accounting Dashboard</h1>
+                    <p>Spice Mountain</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <span id="userEmail" class="user-email"></span>
+                <button onclick="logout()" class="btn-logout">Logout</button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('sales')">📊 Sales</button>
+            <button class="tab-btn" onclick="switchTab('purchase')">📦 Purchase & Expense</button>
+            <button class="tab-btn" onclick="switchTab('inventory')">📋 Inventory</button>
+            <button class="tab-btn" onclick="switchTab('cash')">💰 Cash & Bank</button>
+            <button class="tab-btn" onclick="switchTab('reports')">📈 Reports</button>
+        </nav>
+
+        <!-- SALES TAB -->
+        <div id="salesTab" class="tab-content active">
+            <div class="tab-header">
+                <h2>Sales Management</h2>
+                <div class="subtabs">
+                    <button class="subtab-btn active" onclick="switchSubTab('sales', 'invoice')">📄 Invoices</button>
+                    <button class="subtab-btn" onclick="switchSubTab('sales', 'quotation')">📝 Quotations</button>
+                    <button class="subtab-btn" onclick="switchSubTab('sales', 'proforma')">🏷️ Proforma</button>
+                    <button class="subtab-btn" onclick="switchSubTab('sales', 'order')">📋 Sale Order</button>
+                    <button class="subtab-btn" onclick="switchSubTab('sales', 'delivery')">🚚 Delivery Challan</button>
+                    <button class="subtab-btn" onclick="switchSubTab('sales', 'credit')">↩️ Credit Note</button>
+                </div>
+            </div>
+
+            <!-- Invoice Form & List -->
+            <div id="invoiceSubtab" class="subtab-content active">
+                <div class="form-section">
+                    <h3>Create Sale Invoice</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Invoice Number</label>
+                            <input type="text" id="invoiceNumber" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>Invoice Date</label>
+                            <input type="date" id="invoiceDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Due Date</label>
+                            <input type="date" id="dueDate">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Customer Name</label>
+                            <input type="text" id="customerName" placeholder="Enter customer name">
+                        </div>
+                        <div class="form-group">
+                            <label>Customer Email</label>
+                            <input type="email" id="customerEmail" placeholder="customer@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Customer Phone</label>
+                            <input type="tel" id="customerPhone" placeholder="+91 XXXXX XXXXX">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Billing Address</label>
+                            <textarea id="billingAddress" placeholder="Enter complete address" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Shipping Address</label>
+                            <textarea id="shippingAddress" placeholder="Enter shipping address" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Line Items Table -->
+                    <div class="line-items-section">
+                        <h4>Line Items</h4>
+                        <table class="line-items-table">
+                            <thead>
+                                <tr>
+                                    <th>SL.NO</th>
+                                    <th>Item/Product</th>
+                                    <th>SKU</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lineItemsBody">
+                                <tr class="line-item-row" data-index="0">
+                                    <td>1</td>
+                                    <td><input type="text" class="item-name" placeholder="Select product"></td>
+                                    <td><input type="text" class="item-sku" placeholder="SKU"></td>
+                                    <td><input type="number" class="item-qty" placeholder="0" min="0"></td>
+                                    <td><input type="number" class="item-price" placeholder="0" min="0" step="0.01"></td>
+                                    <td><input type="number" class="item-total" placeholder="0" readonly></td>
+                                    <td><button type="button" onclick="removeLineItem(this)" class="btn-remove">✕</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" onclick="addLineItem()" class="btn-secondary">+ Add Item</button>
+                    </div>
+
+                    <!-- Charges Section -->
+                    <div class="charges-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Delivery Charge (₹)</label>
+                                <input type="number" id="deliveryCharge" placeholder="0" min="0" step="0.01" onchange="calculateInvoiceTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Other Charges (₹)</label>
+                                <input type="number" id="otherCharges" placeholder="0" min="0" step="0.01" onchange="calculateInvoiceTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Discount (₹)</label>
+                                <input type="number" id="discountAmount" placeholder="0" min="0" step="0.01" onchange="calculateInvoiceTotal()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GST Section -->
+                    <div class="gst-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="applyGST" onchange="calculateInvoiceTotal()"> Apply GST
+                                </label>
+                            </div>
+                            <div class="form-group" id="gstRateGroup" style="display: none;">
+                                <label>GST Rate (%)</label>
+                                <select id="gstRate" onchange="calculateInvoiceTotal()">
+                                    <option value="5">5%</option>
+                                    <option value="12">12%</option>
+                                    <option value="18">18%</option>
+                                    <option value="28">28%</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Totals Section -->
+                    <div class="totals-section">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <input type="number" id="subtotal" readonly>
+                        </div>
+                        <div class="total-row" id="gstRow" style="display: none;">
+                            <span>GST:</span>
+                            <input type="number" id="gstAmount" readonly>
+                        </div>
+                        <div class="total-row total-highlight">
+                            <span>Total Amount:</span>
+                            <input type="number" id="totalAmount" readonly>
+                        </div>
+                        <div class="total-row">
+                            <span>Total in Words:</span>
+                            <input type="text" id="totalWords" readonly placeholder="Rupees...">
+                        </div>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div class="payment-section">
+                        <h4>Payment Details</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Payment Mode</label>
+                                <select id="paymentMode">
+                                    <option value="cash">Cash</option>
+                                    <option value="cheque">Cheque</option>
+                                    <option value="bank">Bank Transfer</option>
+                                    <option value="card">Card</option>
+                                    <option value="credit">Credit</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Advance Paid (₹)</label>
+                                <input type="number" id="advancePaid" placeholder="0" min="0" step="0.01" onchange="updateBalanceDue()">
+                            </div>
+                            <div class="form-group">
+                                <label>Balance Due (₹)</label>
+                                <input type="number" id="balanceDue" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Payment Notes</label>
+                                <textarea id="paymentNotes" placeholder="Add payment terms or notes" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes & Terms -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea id="invoiceNotes" placeholder="Add notes or special instructions" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Terms & Conditions</label>
+                            <textarea id="invoiceTerms" placeholder="Add terms and conditions" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="form-actions">
+                        <button type="button" onclick="createInvoice()" class="btn-primary">Save Invoice</button>
+                        <button type="button" onclick="previewInvoice()" class="btn-secondary">Preview</button>
+                        <button type="button" onclick="clearInvoiceForm()" class="btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Invoice List -->
+                <div class="list-section">
+                    <h3>Invoice History</h3>
+                    <div class="search-bar">
+                        <input type="text" id="invoiceSearch" placeholder="Search by invoice number, customer, or date...">
+                        <button onclick="searchInvoices()" class="btn-secondary">Search</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesList">
+                            <tr><td colspan="6" class="text-center">Loading invoices...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quotation Subtab -->
+            <div id="quotationSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Create Quotation</h3>
+                    <p style="color: #666; margin: 10px 0;">Similar to Invoice - for estimation purposes</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Quotation Number</label>
+                            <input type="text" id="quotationNumber" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>Quote Date</label>
+                            <input type="date" id="quotationDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Valid Until</label>
+                            <input type="date" id="validUntil">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Customer Name</label>
+                            <input type="text" id="quotationCustomer" placeholder="Enter customer name">
+                        </div>
+                        <div class="form-group">
+                            <label>Customer Email</label>
+                            <input type="email" id="quotationCustomerEmail" placeholder="customer@email.com">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="createQuotation()" class="btn-primary">Save Quotation</button>
+                        <button type="button" onclick="clearQuotationForm()" class="btn-secondary">Clear</button>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <h3>Quotation History</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Quote #</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Valid Until</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quotationsList">
+                            <tr><td colspan="6" class="text-center">No quotations yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Proforma Invoice Subtab -->
+            <div id="proformaSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Create Proforma Invoice</h3>
+                    <p style="color: #666; margin: 10px 0;">Preliminary invoice before formal invoice</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Proforma Number</label>
+                            <input type="text" id="proformaNumber" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="proformaDate">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="createProforma()" class="btn-primary">Save Proforma</button>
+                        <button type="button" onclick="clearProformaForm()" class="btn-secondary">Clear</button>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <h3>Proforma Invoices</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Proforma #</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proformaList">
+                            <tr><td colspan="4" class="text-center">No proforma invoices yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sale Order Subtab -->
+            <div id="orderSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Create Sale Order</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Order Number</label>
+                            <input type="text" id="orderNumber" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>Order Date</label>
+                            <input type="date" id="orderDate">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="createSaleOrder()" class="btn-primary">Save Order</button>
+                        <button type="button" onclick="clearOrderForm()" class="btn-secondary">Clear</button>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <h3>Sale Orders</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersList">
+                            <tr><td colspan="4" class="text-center">No orders yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Delivery Challan Subtab -->
+            <div id="deliverySubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Create Delivery Challan</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Challan Number</label>
+                            <input type="text" id="challanNumber" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>Delivery Date</label>
+                            <input type="date" id="deliveryDate">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="createDeliveryChallan()" class="btn-primary">Save Challan</button>
+                        <button type="button" onclick="clearChallanForm()" class="btn-secondary">Clear</button>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <h3>Delivery Challans</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Challan #</th>
+                                <th>Delivery Date</th>
+                                <th>Items</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="challansList">
+                            <tr><td colspan="4" class="text-center">No challans yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Credit Note Subtab -->
+            <div id="creditSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Create Credit Note</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Credit Note Number</label>
+                            <input type="text" id="creditNumber" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="creditDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Ref. Invoice Number</label>
+                            <input type="text" id="refInvoiceNumber" placeholder="Original invoice #">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="createCreditNote()" class="btn-primary">Save Credit Note</button>
+                        <button type="button" onclick="clearCreditForm()" class="btn-secondary">Clear</button>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <h3>Credit Notes</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Credit Note #</th>
+                                <th>Date</th>
+                                <th>Ref. Invoice</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="creditNotesList">
+                            <tr><td colspan="5" class="text-center">No credit notes yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PURCHASE TAB -->
+        <div id="purchaseTab" class="tab-content">
+            <div class="tab-header">
+                <h2>Purchase & Expense Management</h2>
+                <div class="subtabs">
+                    <button class="subtab-btn active" onclick="switchSubTab('purchase', 'purchasebill')">📋 Purchase Bills</button>
+                    <button class="subtab-btn" onclick="switchSubTab('purchase', 'paymentout')">💸 Payment Out</button>
+                    <button class="subtab-btn" onclick="switchSubTab('purchase', 'expenses')">💼 Expenses</button>
+                    <button class="subtab-btn" onclick="switchSubTab('purchase', 'purchaseorder')">📦 Purchase Order</button>
+                    <button class="subtab-btn" onclick="switchSubTab('purchase', 'purchasereturn')">↩️ Purchase Return</button>
+                </div>
+            </div>
+
+            <!-- Purchase Bill Subtab -->
+            <div id="purchasebillSubtab" class="subtab-content active">
+                <div class="form-section">
+                    <h3>Create Purchase Bill</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Bill Number</label>
+                            <input type="text" id="purchaseBillNumber" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>Bill Date</label>
+                            <input type="date" id="purchaseBillDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Due Date</label>
+                            <input type="date" id="purchaseBillDueDate">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Supplier Name</label>
+                            <input type="text" id="supplierName" placeholder="Enter supplier name">
+                        </div>
+                        <div class="form-group">
+                            <label>Supplier Email</label>
+                            <input type="email" id="supplierEmail" placeholder="supplier@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Supplier Phone</label>
+                            <input type="tel" id="supplierPhone" placeholder="+91 XXXXX XXXXX">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Purchase Category</label>
+                            <select id="purchaseCategory">
+                                <option value="raw-material">Raw Material</option>
+                                <option value="packing-material">Packing Material</option>
+                                <option value="machinery">Machinery</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Line Items -->
+                    <div class="line-items-section">
+                        <h4>Line Items</h4>
+                        <table class="line-items-table">
+                            <thead>
+                                <tr>
+                                    <th>SL.NO</th>
+                                    <th>Item/Product</th>
+                                    <th>SKU</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchaseLineItemsBody">
+                                <tr class="line-item-row" data-index="0">
+                                    <td>1</td>
+                                    <td><input type="text" class="item-name" placeholder="Product name"></td>
+                                    <td><input type="text" class="item-sku" placeholder="SKU"></td>
+                                    <td><input type="number" class="item-qty" placeholder="0" min="0"></td>
+                                    <td><input type="number" class="item-price" placeholder="0" min="0" step="0.01"></td>
+                                    <td><input type="number" class="item-total" placeholder="0" readonly></td>
+                                    <td><button type="button" onclick="removePurchaseLineItem(this)" class="btn-remove">✕</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" onclick="addPurchaseLineItem()" class="btn-secondary">+ Add Item</button>
+                    </div>
+
+                    <!-- Totals -->
+                    <div class="totals-section">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <input type="number" id="purchaseSubtotal" readonly>
+                        </div>
+                        <div class="total-row total-highlight">
+                            <span>Total Amount:</span>
+                            <input type="number" id="purchaseTotalAmount" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" onclick="createPurchaseBill()" class="btn-primary">Save Purchase Bill</button>
+                        <button type="button" onclick="clearPurchaseBillForm()" class="btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <div class="list-section">
+                    <h3>Purchase Bills History</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Bill #</th>
+                                <th>Date</th>
+                                <th>Supplier</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchaseBillsList">
+                            <tr><td colspan="6" class="text-center">No purchase bills yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payment Out Subtab -->
+            <div id="paymentoutSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Record Payment Out</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Payment Reference</label>
+                            <input type="text" id="paymentOutRef" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Date</label>
+                            <input type="date" id="paymentOutDate">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Amount (₹)</label>
+                            <input type="number" id="paymentOutAmount" placeholder="0" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Mode</label>
+                            <select id="paymentOutMode">
+                                <option value="cash">Cash</option>
+                                <option value="cheque">Cheque</option>
+                                <option value="bank">Bank Transfer</option>
+                                <option value="card">Card</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="createPaymentOut()" class="btn-primary">Save Payment</button>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <h3>Payment Out History</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ref #</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Mode</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentOutList">
+                            <tr><td colspan="5" class="text-center">No payments recorded</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Expenses Subtab -->
+            <div id="expensesSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Add Expense</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Expense Date</label>
+                            <input type="date" id="expenseDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Expense Category</label>
+                            <select id="expenseCategory">
+                                <option value="salary">Salary</option>
+                                <option value="rent">Rent</option>
+                                <option value="utilities">Utilities</option>
+                                <option value="transport">Transport</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (₹)</label>
+                            <input type="number" id="expenseAmount" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="expenseDescription" placeholder="Expense details" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="createExpense()" class="btn-primary">Save Expense</button>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <h3>Expenses History</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expensesList">
+                            <tr><td colspan="5" class="text-center">No expenses recorded</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Purchase Order Subtab -->
+            <div id="purchaseorderSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Create Purchase Order</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>PO Number</label>
+                            <input type="text" id="poNumber" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>PO Date</label>
+                            <input type="date" id="poDate">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="createPurchaseOrder()" class="btn-primary">Save PO</button>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <h3>Purchase Orders</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>PO #</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="poList">
+                            <tr><td colspan="4" class="text-center">No POs yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Purchase Return Subtab -->
+            <div id="purchasereturnSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Create DR Note / Purchase Return</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>DR Note Number</label>
+                            <input type="text" id="drNumber" placeholder="Auto-generated">
+                        </div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="drDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Ref. Bill Number</label>
+                            <input type="text" id="refBillNumber" placeholder="Original bill #">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="createPurchaseReturn()" class="btn-primary">Save DR Note</button>
+                    </div>
+                </div>
+                <div class="list-section">
+                    <h3>DR Notes</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>DR Note #</th>
+                                <th>Date</th>
+                                <th>Ref. Bill</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drNotesList">
+                            <tr><td colspan="5" class="text-center">No DR notes yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- INVENTORY TAB -->
+        <div id="inventoryTab" class="tab-content">
+            <div class="tab-header">
+                <h2>Inventory Management</h2>
+            </div>
+
+            <div class="form-section">
+                <h3>Add / Manage Products</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Product Name *</label>
+                        <input type="text" id="productName" placeholder="Enter product name">
+                    </div>
+                    <div class="form-group">
+                        <label>SKU/Code *</label>
+                        <input type="text" id="productSKU" placeholder="Enter SKU">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="productCategory">
+                            <option value="spice">Spice</option>
+                            <option value="powder">Powder</option>
+                            <option value="blend">Blend</option>
+                            <option value="oil">Oil</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Unit Price (₹) *</label>
+                        <input type="number" id="productPrice" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Quantity</label>
+                        <input type="number" id="productStock" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Unit</label>
+                        <select id="productUnit">
+                            <option value="kg">KG</option>
+                            <option value="gm">GM</option>
+                            <option value="l">L</option>
+                            <option value="ml">ML</option>
+                            <option value="pack">Pack</option>
+                            <option value="piece">Piece</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="productDescription" placeholder="Product details" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="addProduct()" class="btn-primary">Add Product</button>
+                    <button type="button" onclick="clearProductForm()" class="btn-secondary">Clear</button>
+                </div>
+            </div>
+
+            <!-- Products List -->
+            <div class="list-section">
+                <h3>Products Inventory</h3>
+                <div class="search-bar">
+                    <input type="text" id="productSearch" placeholder="Search by product name or SKU...">
+                    <button onclick="searchProducts()" class="btn-secondary">Search</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th>Unit Price</th>
+                            <th>Stock</th>
+                            <th>Unit</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsList">
+                        <tr><td colspan="7" class="text-center">No products yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CASH & BANK TAB -->
+        <div id="cashTab" class="tab-content">
+            <div class="tab-header">
+                <h2>Cash & Bank Management</h2>
+                <div class="subtabs">
+                    <button class="subtab-btn active" onclick="switchSubTab('cash', 'accounts')">🏦 Bank Accounts</button>
+                    <button class="subtab-btn" onclick="switchSubTab('cash', 'cashinhand')">💵 Cash in Hand</button>
+                    <button class="subtab-btn" onclick="switchSubTab('cash', 'cheques')">🔖 Cheques</button>
+                    <button class="subtab-btn" onclick="switchSubTab('cash', 'loans')">📊 Loan Accounts</button>
+                </div>
+            </div>
+
+            <!-- Bank Accounts -->
+            <div id="accountsSubtab" class="subtab-content active">
+                <div class="form-section">
+                    <h3>Add Bank Account</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Bank Name *</label>
+                            <input type="text" id="bankName" placeholder="e.g., Federal Bank">
+                        </div>
+                        <div class="form-group">
+                            <label>Account Name *</label>
+                            <input type="text" id="accountName" placeholder="Account holder name">
+                        </div>
+                        <div class="form-group">
+                            <label>Account Number *</label>
+                            <input type="text" id="accountNumber" placeholder="Enter account number">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>IFSC Code *</label>
+                            <input type="text" id="ifscCode" placeholder="e.g., FDRL0001345">
+                        </div>
+                        <div class="form-group">
+                            <label>Branch</label>
+                            <input type="text" id="bankBranch" placeholder="Branch name">
+                        </div>
+                        <div class="form-group">
+                            <label>Opening Balance (₹)</label>
+                            <input type="number" id="openingBalance" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" onclick="addBankAccount()" class="btn-primary">Add Account</button>
+                        <button type="button" onclick="clearBankForm()" class="btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <div class="list-section">
+                    <h3>Bank Accounts</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Bank Name</th>
+                                <th>Account Name</th>
+                                <th>Account Number</th>
+                                <th>IFSC</th>
+                                <th>Current Balance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bankAccountsList">
+                            <tr><td colspan="6" class="text-center">No bank accounts added</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Cash in Hand -->
+            <div id="cashinhandSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Record Cash Transaction</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="cashDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="cashType">
+                                <option value="in">Cash In</option>
+                                <option value="out">Cash Out</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (₹)</label>
+                            <input type="number" id="cashAmount" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="cashDescription" placeholder="Transaction details" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="recordCashTransaction()" class="btn-primary">Record</button>
+                    </div>
+                </div>
+
+                <div class="list-section">
+                    <h3>Cash Transactions</h3>
+                    <div class="info-box">
+                        <strong>Current Cash in Hand:</strong> <span id="currentCashBalance">₹0</span>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Balance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cashTransactionsList">
+                            <tr><td colspan="6" class="text-center">No cash transactions</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Cheques -->
+            <div id="chequesSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Record Cheque</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Cheque Number *</label>
+                            <input type="text" id="chequeNumber" placeholder="Enter cheque number">
+                        </div>
+                        <div class="form-group">
+                            <label>Cheque Date</label>
+                            <input type="date" id="chequeDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (₹)</label>
+                            <input type="number" id="chequeAmount" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Bank Account</label>
+                            <select id="chequeBank">
+                                <option value="">Select Bank</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="chequeType">
+                                <option value="received">Cheque Received</option>
+                                <option value="issued">Cheque Issued</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="chequeStatus">
+                                <option value="pending">Pending</option>
+                                <option value="cleared">Cleared</option>
+                                <option value="bounced">Bounced</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>From/To</label>
+                            <input type="text" id="chequeFromTo" placeholder="Party name">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" onclick="recordCheque()" class="btn-primary">Record Cheque</button>
+                    </div>
+                </div>
+
+                <div class="list-section">
+                    <h3>Cheques</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Cheque #</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>From/To</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chequesList">
+                            <tr><td colspan="7" class="text-center">No cheques recorded</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Loans -->
+            <div id="loansSubtab" class="subtab-content">
+                <div class="form-section">
+                    <h3>Add Loan Account</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Loan Type *</label>
+                            <select id="loanType">
+                                <option value="bank">Bank Loan</option>
+                                <option value="personal">Personal Loan</option>
+                                <option value="supplier">Supplier Credit</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Lender Name *</label>
+                            <input type="text" id="lenderName" placeholder="Bank or person name">
+                        </div>
+                        <div class="form-group">
+                            <label>Loan Amount (₹) *</label>
+                            <input type="number" id="loanAmount" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Interest Rate (%) per annum</label>
+                            <input type="number" id="interestRate" placeholder="0" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Loan Start Date</label>
+                            <input type="date" id="loanStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Maturity Date</label>
+                            <input type="date" id="maturityDate">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>EMI Amount (₹)</label>
+                            <input type="number" id="emiAmount" placeholder="0" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Amount Paid (₹)</label>
+                            <input type="number" id="loanPaid" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" onclick="addLoanAccount()" class="btn-primary">Add Loan</button>
+                    </div>
+                </div>
+
+                <div class="list-section">
+                    <h3>Loan Accounts</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Lender</th>
+                                <th>Loan Amount</th>
+                                <th>Interest Rate</th>
+                                <th>Amount Paid</th>
+                                <th>Balance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loansList">
+                            <tr><td colspan="7" class="text-center">No loans recorded</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTS TAB -->
+        <div id="reportsTab" class="tab-content">
+            <div class="tab-header">
+                <h2>Financial Reports & Analysis</h2>
+                <div class="subtabs">
+                    <button class="subtab-btn active" onclick="switchSubTab('reports', 'overview')">📊 Overview</button>
+                    <button class="subtab-btn" onclick="switchSubTab('reports', 'sales')">💵 Sales Report</button>
+                    <button class="subtab-btn" onclick="switchSubTab('reports', 'purchase')">📦 Purchase Report</button>
+                    <button class="subtab-btn" onclick="switchSubTab('reports', 'stock')">📋 Stock Report</button>
+                    <button class="subtab-btn" onclick="switchSubTab('reports', 'expense')">💼 Expense Report</button>
+                    <button class="subtab-btn" onclick="switchSubTab('reports', 'cashflow')">💰 Cash Flow</button>
+                </div>
+            </div>
+
+            <!-- Overview Report -->
+            <div id="overviewSubtab" class="subtab-content active">
+                <h3>Financial Overview</h3>
+                <div class="report-filters">
+                    <div class="form-group">
+                        <label>Report Period</label>
+                        <select id="overviewPeriod" onchange="generateOverviewReport()">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="quarter">This Quarter</option>
+                            <option value="year">This Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customDateRange" style="display: none;">
+                        <label>From Date</label>
+                        <input type="date" id="overviewFromDate" onchange="generateOverviewReport()">
+                        <label>To Date</label>
+                        <input type="date" id="overviewToDate" onchange="generateOverviewReport()">
+                    </div>
+                    <button onclick="generateOverviewReport()" class="btn-secondary">Generate</button>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <h4>Total Sales</h4>
+                        <p class="card-value" id="totalSalesCard">₹0</p>
+                    </div>
+                    <div class="card">
+                        <h4>Total Purchases</h4>
+                        <p class="card-value" id="totalPurchasesCard">₹0</p>
+                    </div>
+                    <div class="card">
+                        <h4>Total Expenses</h4>
+                        <p class="card-value" id="totalExpensesCard">₹0</p>
+                    </div>
+                    <div class="card">
+                        <h4>Cash in Hand</h4>
+                        <p class="card-value" id="cashInHandCard">₹0</p>
+                    </div>
+                    <div class="card">
+                        <h4>Outstanding Receivables</h4>
+                        <p class="card-value" id="outstandingReceivablesCard">₹0</p>
+                    </div>
+                    <div class="card">
+                        <h4>Gross Profit</h4>
+                        <p class="card-value" id="grossProfitCard">₹0</p>
+                    </div>
+                </div>
+
+                <div class="report-export">
+                    <button onclick="exportOverviewReport()" class="btn-secondary">📥 Export to Excel</button>
+                    <button onclick="printOverviewReport()" class="btn-secondary">🖨️ Print</button>
+                </div>
+            </div>
+
+            <!-- Sales Report -->
+            <div id="salesSubtab" class="subtab-content">
+                <h3>Sales Report</h3>
+                <div class="report-filters">
+                    <div class="form-group">
+                        <label>Period</label>
+                        <select id="salesPeriod" onchange="generateSalesReport()">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <input type="date" id="salesFromDate" onchange="generateSalesReport()">
+                    </div>
+                    <div class="form-group">
+                        <label>To Date</label>
+                        <input type="date" id="salesToDate" onchange="generateSalesReport()">
+                    </div>
+                    <button onclick="generateSalesReport()" class="btn-secondary">Generate</button>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th>Total Amount</th>
+                            <th>Paid</th>
+                            <th>Outstanding</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesReportBody">
+                        <tr><td colspan="6" class="text-center">Generate report to see data</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="report-summary">
+                    <div class="summary-item">
+                        <span>Total Sales:</span>
+                        <strong id="reportTotalSales">₹0</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Paid:</span>
+                        <strong id="reportTotalPaid">₹0</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Outstanding:</span>
+                        <strong id="reportOutstanding">₹0</strong>
+                    </div>
+                </div>
+
+                <div class="report-export">
+                    <button onclick="exportSalesReport()" class="btn-secondary">📥 Export to Excel</button>
+                    <button onclick="printSalesReport()" class="btn-secondary">🖨️ Print</button>
+                </div>
+            </div>
+
+            <!-- Purchase Report -->
+            <div id="purchaseSubtab" class="subtab-content">
+                <h3>Purchase Report</h3>
+                <div class="report-filters">
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <input type="date" id="purchaseFromDate" onchange="generatePurchaseReport()">
+                    </div>
+                    <div class="form-group">
+                        <label>To Date</label>
+                        <input type="date" id="purchaseToDate" onchange="generatePurchaseReport()">
+                    </div>
+                    <button onclick="generatePurchaseReport()" class="btn-secondary">Generate</button>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Bill #</th>
+                            <th>Supplier</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="purchaseReportBody">
+                        <tr><td colspan="5" class="text-center">Generate report to see data</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="report-summary">
+                    <div class="summary-item">
+                        <span>Total Purchases:</span>
+                        <strong id="reportTotalPurchases">₹0</strong>
+                    </div>
+                </div>
+
+                <div class="report-export">
+                    <button onclick="exportPurchaseReport()" class="btn-secondary">📥 Export to Excel</button>
+                </div>
+            </div>
+
+            <!-- Stock Report -->
+            <div id="stockSubtab" class="subtab-content">
+                <h3>Stock Report</h3>
+                <button onclick="generateStockReport()" class="btn-secondary">Generate</button>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th>Unit Price</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Total Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockReportBody">
+                        <tr><td colspan="7" class="text-center">No products in inventory</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="report-summary">
+                    <div class="summary-item">
+                        <span>Total Inventory Value:</span>
+                        <strong id="totalInventoryValue">₹0</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Items:</span>
+                        <strong id="totalItems">0</strong>
+                    </div>
+                </div>
+
+                <div class="report-export">
+                    <button onclick="exportStockReport()" class="btn-secondary">📥 Export to Excel</button>
+                </div>
+            </div>
+
+            <!-- Expense Report -->
+            <div id="expenseSubtab" class="subtab-content">
+                <h3>Expense Report</h3>
+                <div class="report-filters">
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <input type="date" id="expenseFromDate" onchange="generateExpenseReport()">
+                    </div>
+                    <div class="form-group">
+                        <label>To Date</label>
+                        <input type="date" id="expenseToDate" onchange="generateExpenseReport()">
+                    </div>
+                    <button onclick="generateExpenseReport()" class="btn-secondary">Generate</button>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseReportBody">
+                        <tr><td colspan="4" class="text-center">Generate report to see data</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="report-summary">
+                    <div class="summary-item">
+                        <span>Total Expenses:</span>
+                        <strong id="reportTotalExpenses">₹0</strong>
+                    </div>
+                </div>
+
+                <div class="report-export">
+                    <button onclick="exportExpenseReport()" class="btn-secondary">📥 Export to Excel</button>
+                </div>
+            </div>
+
+            <!-- Cash Flow Report -->
+            <div id="cashflowSubtab" class="subtab-content">
+                <h3>Cash Flow Report</h3>
+                <div class="report-filters">
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <input type="date" id="cashflowFromDate" onchange="generateCashFlowReport()">
+                    </div>
+                    <div class="form-group">
+                        <label>To Date</label>
+                        <input type="date" id="cashflowToDate" onchange="generateCashFlowReport()">
+                    </div>
+                    <button onclick="generateCashFlowReport()" class="btn-secondary">Generate</button>
+                </div>
+
+                <div class="report-summary">
+                    <div class="summary-item">
+                        <span>Opening Balance:</span>
+                        <strong id="openingCashBalance">₹0</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Cash Inflow:</span>
+                        <strong id="cashInflow">₹0</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Cash Outflow:</span>
+                        <strong id="cashOutflow">₹0</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Closing Balance:</span>
+                        <strong id="closingCashBalance">₹0</strong>
+                    </div>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Inflow</th>
+                            <th>Outflow</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cashflowReportBody">
+                        <tr><td colspan="5" class="text-center">Generate report to see data</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="report-export">
+                    <button onclick="exportCashFlowReport()" class="btn-secondary">📥 Export to Excel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Print Preview Modal -->
+    <div id="printModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closePrintModal()">&times;</span>
+            <div id="printContent" class="invoice-print">
+                <!-- Invoice content will be rendered here -->
+            </div>
+            <div class="print-actions">
+                <button onclick="printInvoice()" class="btn-primary">🖨️ Print</button>
+                <button onclick="downloadInvoicePDF()" class="btn-primary">📥 Download PDF</button>
+                <button onclick="closePrintModal()" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company Details Modal -->
+    <div id="companyModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeCompanyModal()">&times;</span>
+            <h2>Company Details</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Company Name</label>
+                    <input type="text" id="companyName" value="Wayanaroma Spice Mountain" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea id="companyAddress" readonly>WayanAroma Spice Mountain | Kuzhivayal, Thrikkaipetta P.O, Meppadi, Wayanad, Kerala</textarea>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" id="companyPhone" value="+91 79078 06468" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" id="companyEmail" value="wayanaromaindia@gmail.com" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Website</label>
+                    <input type="text" id="companyWebsite" value="www.wayanaroma.com" readonly>
+                </div>
+            </div>
+            <hr>
+            <h3>Bank Details</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Bank Name</label>
+                    <input type="text" id="companyBankName" value="Federal Bank" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Account Name</label>
+                    <input type="text" id="companyBankAccount" value="WAYAN AROMA" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Account Number</label>
+                    <input type="text" id="companyAccountNumber" value="13450200012187" readonly>
+                </div>
+                <div class="form-group">
+                    <label>IFSC Code</label>
+                    <input type="text" id="companyIFSC" value="FDRL0001345" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Branch</label>
+                    <input type="text" id="companyBranch" value="KALPETTA" readonly>
+                </div>
+            </div>
+            <button onclick="closeCompanyModal()" class="btn-primary">Close</button>
+        </div>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
