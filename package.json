@@ -1,0 +1,26 @@
+{
+  "name": "wayanaroma-accounting",
+  "version": "1.0.0",
+  "description": "Wayanaroma Accounting Dashboard - Billing & Inventory Management",
+  "main": "index.html",
+  "scripts": {
+    "start": "firebase serve",
+    "build": "firebase deploy",
+    "dev": "python -m http.server 8000"
+  },
+  "keywords": [
+    "accounting",
+    "billing",
+    "inventory",
+    "invoice",
+    "firebase"
+  ],
+  "author": "anshadprompt-web",
+  "license": "Proprietary",
+  "dependencies": {
+    "firebase": "^10.12.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}
